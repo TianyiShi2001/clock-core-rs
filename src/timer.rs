@@ -1,5 +1,12 @@
 use chrono::{DateTime, Duration, Local};
 
+#[derive(Debug, Clone)]
+pub struct TimerData {
+    pub total: Duration,
+    pub start_moments: Vec<DateTime<Local>>, // moments at which the timer resumes; the first is the start monent
+    pub pause_moments: Vec<DateTime<Local>>, // moments at which the timer is paused; the last is the stop moment
+}
+
 /// A countdown timer
 #[derive(Clone, Debug)]
 pub struct Timer {
@@ -8,6 +15,7 @@ pub struct Timer {
     pub start_moments: Vec<DateTime<Local>>, // moments at which the timer resumes; the first is the start monent
     pub pause_moments: Vec<DateTime<Local>>, // moments at which the timer is paused; the last is the stop moment
     pub paused: bool,
+    //pub data: TimerData,
 }
 
 impl Timer {

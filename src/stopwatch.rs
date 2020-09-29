@@ -26,7 +26,7 @@ use chrono::{DateTime, Duration, Local};
 use std::mem;
 
 #[derive(Debug)]
-pub struct StopWatchData {
+pub struct StopwatchData {
     pub elapsed: Duration,
     pub pause_moments: Vec<DateTime<Local>>, // moments at which the stopwatch is paused
     pub start_moments: Vec<DateTime<Local>>, // moments at which the stopwatch resumes
@@ -34,7 +34,7 @@ pub struct StopWatchData {
     pub laps: Vec<Duration>,                 // lap times
 }
 
-impl StopWatchData {
+impl StopwatchData {
     pub fn new() -> Self {
         Self {
             elapsed: Duration::zero(),
@@ -56,7 +56,7 @@ impl StopWatchData {
 pub struct Stopwatch {
     pub lap_elapsed: Duration, // elapsed time of the current lap
     pub paused: bool,
-    pub data: StopWatchData,
+    pub data: StopwatchData,
 }
 
 impl Stopwatch {
@@ -65,7 +65,7 @@ impl Stopwatch {
         Self {
             lap_elapsed: Duration::zero(),
             paused: true, // stopped by default; start by explicitly calling `.resume()`
-            data: StopWatchData::new(),
+            data: StopwatchData::new(),
         }
     }
     /// Read the total time elapsed
@@ -123,7 +123,7 @@ impl Stopwatch {
         self.data.start_moments.push(Local::now());
         self.paused = false;
     }
-    pub fn stop(&mut self) -> StopWatchData {
+    pub fn stop(&mut self) -> StopwatchData {
         let moment = Local::now();
         // lap
         let lap = self.read_lap_elapsed(moment);
@@ -135,7 +135,7 @@ impl Stopwatch {
         self.data.elapsed = self.data.elapsed + (moment - self.last_start());
         self.paused = true;
         // data
-        let data = mem::replace(&mut self.data, StopWatchData::new());
+        let data = mem::replace(&mut self.data, StopwatchData::new());
         data
     }
 }
