@@ -77,14 +77,14 @@ impl StopWatch {
     fn last_lap(&self) -> DateTime<Local> {
         self.lap_moments[self.lap_moments.len() - 1]
     }
-    fn pause(&mut self) {
+    pub fn pause(&mut self) {
         let moment = Local::now();
         self.pause_moments.push(moment);
         self.elapsed = self.elapsed + (moment - self.last_start());
         self.lap_elapsed = self.read_lap_elapsed(moment);
         self.paused = true;
     }
-    fn resume(&mut self) {
+    pub fn resume(&mut self) {
         self.start_moments.push(Local::now());
         self.paused = false;
     }

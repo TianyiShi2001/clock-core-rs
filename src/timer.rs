@@ -45,13 +45,13 @@ impl Timer {
     fn last_start(&self) -> DateTime<Local> {
         self.start_moments[self.start_moments.len() - 1]
     }
-    fn pause(&mut self) {
+    pub fn pause(&mut self) {
         let moment = Local::now();
         self.pause_moments.push(moment);
         self.remaining = self.remaining - (moment - self.last_start());
         self.paused = true;
     }
-    fn resume(&mut self) {
+    pub fn resume(&mut self) {
         self.start_moments.push(Local::now());
         self.paused = false;
     }
