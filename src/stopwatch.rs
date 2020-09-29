@@ -1,4 +1,19 @@
-//! A stopwatch that mimics iOS's stopwatch
+//! # Stopwatch
+//!
+//! A stopwatch that mimics iOS's stopwatch.
+//!
+//! ## Usage
+//!
+//! - Use `Stopwatch::new()` to initialise a new stopwatch instance. The stopwatch is paused
+//! at `00:00` and will **not** run until you call `.resume()` or `.pause_or_resume()`.
+//! - While running:
+//!     - Call `.lap()` to record lap times.
+//!     - Call `.pause_or_resume()`, `.pause()` or `.resume()` to pause or resume.
+//! - When you want to stop (reset), call `.stop()`, which resets the stopwatch and returns data
+//!
+//! ## Examples
+//!
+//! ## Schematic
 //!
 //! ```ignore
 //!                  lap    lap          lap
@@ -8,37 +23,57 @@
 //! ```
 
 use chrono::{DateTime, Duration, Local};
+use std::mem;
 
-#[derive(Clone, Debug)]
-pub struct StopWatch {
-    pub elapsed: Duration,                   // total elapsed time
-    pub lap_elapsed: Duration,               // elapsed time of the current lap
+#[derive(Debug)]
+pub struct StopWatchData {
+    pub elapsed: Duration,
     pub pause_moments: Vec<DateTime<Local>>, // moments at which the stopwatch is paused
     pub start_moments: Vec<DateTime<Local>>, // moments at which the stopwatch resumes
     pub lap_moments: Vec<DateTime<Local>>,   // moments at which a lap time is read
     pub laps: Vec<Duration>,                 // lap times
-    pub paused: bool,
 }
 
-impl StopWatch {
-    /// Returns stopwatch reset to zero
+impl StopWatchData {
     pub fn new() -> Self {
         Self {
             elapsed: Duration::zero(),
-            lap_elapsed: Duration::zero(),
             start_moments: Vec::new(),
             pause_moments: Vec::new(),
             lap_moments: Vec::new(),
             laps: Vec::new(),
+        }
+    }
+    pub fn start(&self) -> DateTime<Local> {
+        self.start_moments[0]
+    }
+    pub fn stop(&self) -> DateTime<Local> {
+        self.pause_moments[self.pause_moments.len() - 1]
+    }
+}
+
+#[derive(Debug)]
+pub struct Stopwatch {
+    pub lap_elapsed: Duration, // elapsed time of the current lap
+    pub paused: bool,
+    pub data: StopWatchData,
+}
+
+impl Stopwatch {
+    /// Returns stopwatch reset to zero
+    pub fn new() -> Self {
+        Self {
+            lap_elapsed: Duration::zero(),
             paused: true, // stopped by default; start by explicitly calling `.resume()`
+            data: StopWatchData::new(),
         }
     }
     /// Read the total time elapsed
     pub fn read(&self) -> Duration {
         if self.paused {
-            self.elapsed
+            self.data.elapsed
         } else {
-            self.elapsed + (Local::now() - self.last_start())
+            self.data.elapsed + (Local::now() - self.last_start())
         }
     }
     pub fn pause_or_resume(&mut self) {
@@ -55,8 +90,8 @@ impl StopWatch {
         } else {
             let moment = Local::now();
             let lap = self.read_lap_elapsed(moment);
-            self.lap_moments.push(moment);
-            self.laps.push(lap);
+            self.data.lap_moments.push(moment);
+            self.data.laps.push(lap);
             self.lap_elapsed = Duration::zero();
             Some(lap)
         }
@@ -64,7 +99,7 @@ impl StopWatch {
     /// Read the time elapsed in the current lap
     fn read_lap_elapsed(&self, moment: DateTime<Local>) -> Duration {
         self.lap_elapsed
-            + if self.lap_elapsed == Duration::zero() && !self.lap_moments.is_empty() {
+            + if self.lap_elapsed == Duration::zero() && !self.data.lap_moments.is_empty() {
                 moment - self.last_lap()
             } else {
                 moment - self.last_start()
@@ -72,20 +107,35 @@ impl StopWatch {
     }
 
     fn last_start(&self) -> DateTime<Local> {
-        self.start_moments[self.start_moments.len() - 1]
+        self.data.start_moments[self.data.start_moments.len() - 1]
     }
     fn last_lap(&self) -> DateTime<Local> {
-        self.lap_moments[self.lap_moments.len() - 1]
+        self.data.lap_moments[self.data.lap_moments.len() - 1]
     }
     pub fn pause(&mut self) {
         let moment = Local::now();
-        self.pause_moments.push(moment);
-        self.elapsed = self.elapsed + (moment - self.last_start());
+        self.data.pause_moments.push(moment);
+        self.data.elapsed = self.data.elapsed + (moment - self.last_start());
         self.lap_elapsed = self.read_lap_elapsed(moment);
         self.paused = true;
     }
     pub fn resume(&mut self) {
-        self.start_moments.push(Local::now());
+        self.data.start_moments.push(Local::now());
         self.paused = false;
+    }
+    pub fn stop(&mut self) -> StopWatchData {
+        let moment = Local::now();
+        // lap
+        let lap = self.read_lap_elapsed(moment);
+        self.data.lap_moments.push(moment);
+        self.data.laps.push(lap);
+        self.lap_elapsed = Duration::zero();
+        // pause
+        self.data.pause_moments.push(moment);
+        self.data.elapsed = self.data.elapsed + (moment - self.last_start());
+        self.paused = true;
+        // data
+        let data = mem::replace(&mut self.data, StopWatchData::new());
+        data
     }
 }
