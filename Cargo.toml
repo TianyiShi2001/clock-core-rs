@@ -1,0 +1,15 @@
+[package]
+name = "clock-core"
+version = "0.0.1"
+authors = ["Tianyi Shi <ShiTianyi2001@outlook.com>"]
+edition = "2018"
+documentation = "https://docs.rs/clock-core"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/TianyiShi2001/clock-core-rs"
+description = "Reusable components for implementing clock-related functionalities"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.15"
