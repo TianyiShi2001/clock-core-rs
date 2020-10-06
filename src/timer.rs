@@ -16,6 +16,7 @@ use chrono::{DateTime, Duration, Local};
 #[derive(Debug, Clone)]
 pub struct TimerData {
     pub total: Duration,
+    pub remaining: Duration,
     pub start_moments: Vec<DateTime<Local>>, // moments at which the timer resumes; the first is the start monent
     pub pause_moments: Vec<DateTime<Local>>, // moments at which the timer is paused; the last is the stop moment
 }
@@ -24,6 +25,7 @@ impl TimerData {
     fn new(duration: Duration) -> Self {
         Self {
             total: duration,
+            remaining: duration,
             start_moments: Vec::new(),
             pause_moments: Vec::new(),
         }
@@ -45,7 +47,6 @@ impl TimerData {
 /// A countdown timer
 #[derive(Clone, Debug)]
 pub struct Timer {
-    pub remaining: Duration,
     pub paused: bool,
     pub data: TimerData,
 }
@@ -54,7 +55,6 @@ impl Timer {
     /// Returns stopwatch reset to zero
     pub fn new(duration: Duration) -> Self {
         Self {
-            remaining: duration,
             paused: true, // finished by default; start by explicitly calling `.resume()`
             data: TimerData::new(duration),
         }
@@ -62,9 +62,9 @@ impl Timer {
     /// Read the timer. Returns the duration passed.
     pub fn read(&self) -> Duration {
         if self.paused {
-            self.remaining
+            self.data.remaining
         } else {
-            self.remaining - (Local::now() - self.last_start())
+            self.data.remaining - (Local::now() - self.last_start())
         }
     }
     /// Pause or resume the timer. (If paused, resume, and vice versa.)
@@ -79,7 +79,7 @@ impl Timer {
     pub fn pause(&mut self) {
         let moment = Local::now();
         self.data.pause_moments.push(moment);
-        self.remaining = self.remaining - (moment - self.last_start());
+        self.data.remaining = self.data.remaining - (moment - self.last_start());
         self.paused = true;
     }
     /// Resume the timer (suggest using `pause_or_resume` instead.)
@@ -89,6 +89,7 @@ impl Timer {
     }
     /// Stop the timer, return the data, and reset the timer with the previously set duration.
     pub fn stop(&mut self) -> TimerData {
+        self.data.pause_moments.push(Local::now());
         let duration = self.data.total;
         let data = std::mem::replace(&mut self.data, TimerData::new(duration));
         data
