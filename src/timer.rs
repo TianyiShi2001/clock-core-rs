@@ -69,31 +69,49 @@ impl Timer {
     }
     /// Pause or resume the timer. (If paused, resume, and vice versa.)
     pub fn pause_or_resume(&mut self) {
+        self.pause_or_resume_at(Local::now());
+    }
+
+    pub fn pause_or_resume_at(&mut self, moment: DateTime<Local>) {
         if self.paused {
-            self.resume();
+            self.resume_at(moment);
         } else {
-            self.pause();
+            self.pause_at(moment);
         }
     }
+
     /// Pause the timer (suggest using `pause_or_resume` instead.)
     pub fn pause(&mut self) {
-        let moment = Local::now();
+        self.pause_at(Local::now());
+    }
+
+    pub fn pause_at(&mut self, moment: DateTime<Local>) {
         self.data.pause_moments.push(moment);
         self.data.remaining = self.data.remaining - (moment - self.last_start());
         self.paused = true;
     }
     /// Resume the timer (suggest using `pause_or_resume` instead.)
     pub fn resume(&mut self) {
-        self.data.start_moments.push(Local::now());
+        self.resume_at(Local::now());
+    }
+
+    pub fn resume_at(&mut self, moment: DateTime<Local>) {
+        self.data.start_moments.push(moment);
         self.paused = false;
     }
+
     /// Stop the timer, return the data, and reset the timer with the previously set duration.
     pub fn stop(&mut self) -> TimerData {
-        self.data.pause_moments.push(Local::now());
+        self.stop_at(Local::now())
+    }
+
+    pub fn stop_at(&mut self, moment: DateTime<Local>) -> TimerData {
+        self.data.pause_moments.push(moment);
         let duration = self.data.total;
         let data = std::mem::replace(&mut self.data, TimerData::new(duration));
         data
     }
+
     fn last_start(&self) -> DateTime<Local> {
         self.data.start_moments[self.data.start_moments.len() - 1]
     }

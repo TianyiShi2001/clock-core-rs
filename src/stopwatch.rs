@@ -94,20 +94,27 @@ impl Stopwatch {
     }
     /// Pause or resume the timer.
     pub fn pause_or_resume(&mut self) {
+        self.pause_or_resume_at(Local::now());
+    }
+
+    pub fn pause_or_resume_at(&mut self, moment: DateTime<Local>) {
         if self.paused {
-            self.resume();
+            self.resume_at(moment);
         } else {
-            self.pause();
+            self.pause_at(moment);
         }
     }
     /// Lap the stopwatch. If the stopwatch is running, return `Some(<laptime>)`.
     /// If the stopwatch is paused, return `None`.
     pub fn lap(&mut self) -> Option<Duration> {
+        self.lap_at(Local::now())
+    }
+
+    pub fn lap_at(&mut self, moment: DateTime<Local>) -> Option<Duration> {
         // assert!(!self.paused, "Paused!");
         if self.paused {
             None
         } else {
-            let moment = Local::now();
             let lap = self.read_lap_elapsed(moment);
             self.data.lap_moments.push(moment);
             self.data.laps.push(lap);
@@ -115,9 +122,13 @@ impl Stopwatch {
             Some(lap)
         }
     }
+
     /// resets the stopwatch and returns [`StopwatchData`](struct.StopwatchData.html)
     pub fn stop(&mut self) -> StopwatchData {
-        let moment = Local::now();
+        self.stop_at(Local::now())
+    }
+
+    pub fn stop_at(&mut self, moment: DateTime<Local>) -> StopwatchData {
         // lap
         let lap = self.read_lap_elapsed(moment);
         self.data.lap_moments.push(moment);
@@ -131,6 +142,7 @@ impl Stopwatch {
         let data = mem::replace(&mut self.data, StopwatchData::new());
         data
     }
+
     /// Read the time elapsed in the current lap
     fn read_lap_elapsed(&self, moment: DateTime<Local>) -> Duration {
         self.lap_elapsed
@@ -149,15 +161,22 @@ impl Stopwatch {
     }
     /// Pause the stopwatch (suggest using `pause_or_resume` instead.)
     pub fn pause(&mut self) {
-        let moment = Local::now();
+        self.pause_at(Local::now());
+    }
+    /// Resume the stopwatch (suggest using `pause_or_resume` instead.)
+    pub fn resume(&mut self) {
+        self.resume_at(Local::now());
+    }
+
+    pub fn pause_at(&mut self, moment: DateTime<Local>) {
         self.data.pause_moments.push(moment);
         self.data.elapsed = self.data.elapsed + (moment - self.last_start());
         self.lap_elapsed = self.read_lap_elapsed(moment);
         self.paused = true;
     }
-    /// Resume the stopwatch (suggest using `pause_or_resume` instead.)
-    pub fn resume(&mut self) {
-        self.data.start_moments.push(Local::now());
+
+    pub fn resume_at(&mut self, moment: DateTime<Local>) {
+        self.data.start_moments.push(moment);
         self.paused = false;
     }
 }
