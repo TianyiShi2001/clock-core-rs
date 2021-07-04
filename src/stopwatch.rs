@@ -136,8 +136,10 @@ impl Stopwatch {
         self.lap_elapsed = Duration::zero();
         // pause
         self.data.pause_moments.push(moment);
-        self.data.elapsed = self.data.elapsed + (moment - self.last_start());
-        self.paused = true;
+        if !self.paused {
+            self.data.elapsed = self.data.elapsed + (moment - self.last_start());
+            self.paused = true;
+        }
         // data
         let data = mem::replace(&mut self.data, StopwatchData::new());
         data
